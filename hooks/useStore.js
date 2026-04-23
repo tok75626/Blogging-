@@ -39,25 +39,11 @@ export const useStore = create((set) => ({
 
   setUser: (user) => set({ user }),
 
-  login: async (credentials) => {
-    set({ loading: true, error: null });
-    try {
-      const { data } = await api.post('/auth/login', credentials);
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      set({ user: data.user, loading: false });
-      return data;
-    } catch (error) {
-      const msg = error.response?.data?.message || 'Login failed';
-      set({ error: msg, loading: false });
-      throw new Error(msg);
-    }
+  login: async () => {
+    return { success: true };
   },
 
   logout: async () => {
-    try { await api.post('/auth/logout'); } catch {}
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
     set({ user: null, posts: [] });
   },
 
