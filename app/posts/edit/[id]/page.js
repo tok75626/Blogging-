@@ -18,7 +18,7 @@ export default function EditPost() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const { data } = await api.get(`/api/posts/${id}`);
+        const { data } = await api.get(`/posts/${id}`);
         setPostData(data);
       } catch (e) {
         alert('Failed to load post');
@@ -31,7 +31,7 @@ export default function EditPost() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.put(`/api/posts/${id}`, postData);
+      await api.put(`/posts/${id}`, postData);
       router.push('/dashboard');
     } catch (e) {
       alert(e.message);

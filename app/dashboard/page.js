@@ -20,8 +20,8 @@ export default function Dashboard() {
       // In a real app, I'd pass a userId filter to /api/posts
       // For this demo, let's assume we can filter or just fetch all and filter client-side if needed
       // Actually, I'll just fetch all for now and show how management looks
-      const { data } = await api.get('/api/posts');
-      setUserPosts(data.posts.filter(p => p.author?._id === user.id || p.author === user.id));
+      const { data } = await api.get('/posts');
+      setUserPosts((data.posts || []).filter(p => p.author?._id === user?.id || p.author === user?.id || p.author?._id === user?._id));
     } catch (e) {
       console.error(e);
     } finally {
@@ -32,8 +32,8 @@ export default function Dashboard() {
   const handleDelete = async (id) => {
     if (!confirm('Are you sure?')) return;
     try {
-      await api.delete(`/api/posts/${id}`);
-      setUserPosts(userPosts.filter(p => p._id !== id));
+      await api.delete(`/posts/${id}`);
+      setUserPosts((userPosts || []).filter(p => p._id !== id));
     } catch (e) {
       alert('Delete failed');
     }

@@ -11,7 +11,7 @@ export default function PostDetail() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const { data } = await api.get(`/api/posts/${id}`);
+        const { data } = await api.get(`/posts/${id}`);
         setPost(data);
       } catch (e) {
         console.error(e);
@@ -54,12 +54,12 @@ export default function PostDetail() {
       )}
 
       <div className="glass-card" style={{ padding: '3rem', fontSize: '1.15rem', lineHeight: '1.8' }}>
-        {post.content.split('\n').map((para, i) => (
+        {(post.content || '').split('\n').map((para, i) => (
           <p key={i} style={{ marginBottom: '1.5rem' }}>{para}</p>
         ))}
         
         <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid var(--border)', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {post.tags.map(tag => (
+          {(post.tags || []).map(tag => (
             <span key={tag} style={{ color: 'var(--text-dim)', fontSize: '0.9rem' }}>#{tag}</span>
           ))}
         </div>
