@@ -33,6 +33,12 @@ export default function Home() {
           Experience production-grade AI content generation with a sleek, high-perf interface.
         </p>
 
+        <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <Link href="/posts/create" className="btn-primary" style={{ padding: '1rem 2rem', fontSize: '1.1rem' }}>
+            Create New Blog Post
+          </Link>
+        </div>
+
         <div style={{ marginTop: '2rem', maxWidth: '500px', margin: '2rem auto 0' }}>
           <input 
             type="text" 
