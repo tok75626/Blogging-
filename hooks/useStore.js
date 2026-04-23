@@ -11,17 +11,11 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// On 401, clear session and redirect to login
+// On 401, bypass clear session
 api.interceptors.response.use(
   (res) => res,
   (error) => {
-    if (error.response?.status === 401) {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
-      }
-    }
+    // bypass everything
     return Promise.reject(error);
   }
 );
@@ -32,13 +26,15 @@ export const useStore = create((set) => ({
   loading: false,
   error: null,
 
-  // Restore auth from localStorage on app boot
+  // Restore auth from localStorage on app boot (Bypassed)
   initAuth: () => {
     if (typeof window === 'undefined') return;
-    const stored = localStorage.getItem('user');
-    if (stored) {
-      try { set({ user: JSON.parse(stored) }); } catch {}
-    }
+    set({ user: {
+      id: '662b1f1a1c4b2a001c8e1234', 
+      email: 'admin@blogpro.com',
+      name: 'Admin User',
+      role: 'admin',
+    }});
   },
 
   setUser: (user) => set({ user }),

@@ -17,21 +17,10 @@ export default function Layout({ children }) {
           <Link href="/" className="nav-logo">AI BLOG PRO</Link>
           <div className="nav-links">
             <Link href="/">Feed</Link>
-            {user ? (
-              <>
-                <Link href="/dashboard">Dashboard</Link>
-                <Link href="/posts/create">Create</Link>
-                <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{user.name}</span>
-                <button onClick={logout} style={{ background: 'transparent', color: 'var(--text-dim)', cursor: 'pointer' }}>
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link href="/login">Login</Link>
-                <Link href="/register" className="btn-primary" style={{ padding: '0.5rem 1rem' }}>Get Started</Link>
-              </>
-            )}
+            <Link href="/dashboard">Dashboard</Link>
+            <Link href="/posts/create">Create</Link>
+            <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{user?.name || 'Admin'}</span>
+
           </div>
         </div>
       </nav>
