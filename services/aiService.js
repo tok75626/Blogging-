@@ -18,6 +18,7 @@ class AIService {
       console.log('Attempting OpenAI...');
       const response = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
+        max_tokens: 4096,
         ...payload,
       });
       return response.choices[0].message.content;
@@ -25,7 +26,8 @@ class AIService {
       console.error('OpenAI failed, falling back to OpenRouter:', error.message);
       try {
         const response = await openrouter.chat.completions.create({
-          model: 'openai/gpt-4o-mini', // Or any specified model on OpenRouter
+          model: 'openai/gpt-4o-mini',
+          max_tokens: 4096,
           ...payload,
         });
         return response.choices[0].message.content;
