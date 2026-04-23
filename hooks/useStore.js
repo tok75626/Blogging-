@@ -46,8 +46,9 @@ export const useStore = create((set, get) => ({
   login: async (credentials) => {
     set({ loading: true, error: null });
     try {
-      const { data } = await api.post('/api/auth/login', credentials);
+      const { data } = await api.post('/auth/login', credentials);
       localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('user', JSON.stringify(data.user));
       set({ user: data.user, loading: false });
       return data;
     } catch (error) {
@@ -58,9 +59,10 @@ export const useStore = create((set, get) => ({
 
   logout: async () => {
     try {
-      await api.post('/api/auth/logout');
+      await api.post('/auth/logout');
     } finally {
       localStorage.removeItem('accessToken');
+      localStorage.removeItem('user');
       set({ user: null });
     }
   },
@@ -68,8 +70,8 @@ export const useStore = create((set, get) => ({
   fetchPosts: async (params) => {
     set({ loading: true });
     try {
-      const { data } = await api.get('/api/posts', { params });
-      set({ posts: data.posts, loading: false });
+      const { data } = await api.get('/posts', { params });
+      set({ posts: data.posts || [], loading: false });
       return data;
     } catch (error) {
       set({ error: error.message, loading: false });
@@ -79,8 +81,8 @@ export const useStore = create((set, get) => ({
   createPost: async (postData) => {
     set({ loading: true });
     try {
-      const { data } = await api.post('/api/posts', postData);
-      set((state) => ({ posts: [data, ...state.posts], loading: false }));
+      const { data } = await api.post('/posts', postData);
+      set((state) => ({ posts: [data, ...(state.posts || [])], loading: false }));
       return data;
     } catch (error) {
       set({ error: error.message, loading: false });
@@ -91,7 +93,7 @@ export const useStore = create((set, get) => ({
   generateAIContent: async (prompt) => {
     set({ loading: true });
     try {
-      const { data } = await api.post('/api/ai/generate', { prompt });
+      const { data } = await api.post('/ai/generate', { prompt });
       set({ loading: false });
       return data;
     } catch (error) {
@@ -103,7 +105,7 @@ export const useStore = create((set, get) => ({
   uploadFile: async (file) => {
     set({ loading: true });
     try {
-      const { data } = await api.post(`/api/upload?filename=${file.name}`, file, {
+      const { data } = await api.post(`/upload?filename=${file.name}`, file, {
         headers: {
           'Content-Type': file.type,
         },
