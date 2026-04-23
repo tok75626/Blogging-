@@ -1,70 +1,68 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
-// API Instance with automatic refresh token handling
-const api = axios.create({
-  baseURL: '/api',
-});
+// Single axios instance - baseURL is /api, all paths are relative
+const api = axios.create({ baseURL: '/api' });
 
+// Attach token to every request automatically
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
+// On 401, clear session and redirect to login
 api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      try {
-        const { data } = await axios.post('/api/auth/refresh');
-        localStorage.setItem('accessToken', data.accessToken);
-        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
-        return api(originalRequest);
-      } catch (refreshError) {
-        localStorage.removeItem('accessToken');
+  (res) => res,
+  (error) => {
+    if (error.response?.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
         window.location.href = '/login';
-        return Promise.reject(refreshError);
       }
     }
     return Promise.reject(error);
   }
 );
 
-export const useStore = create((set, get) => ({
+export const useStore = create((set) => ({
   user: null,
   posts: [],
   loading: false,
   error: null,
 
+  // Restore auth from localStorage on app boot
+  initAuth: () => {
+    if (typeof window === 'undefined') return;
+    const stored = localStorage.getItem('user');
+    if (stored) {
+      try { set({ user: JSON.parse(stored) }); } catch {}
+    }
+  },
+
   setUser: (user) => set({ user }),
-  
+
   login: async (credentials) => {
     set({ loading: true, error: null });
     try {
       const { data } = await api.post('/auth/login', credentials);
-      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       set({ user: data.user, loading: false });
       return data;
     } catch (error) {
-      set({ error: error.response?.data?.message || 'Login failed', loading: false });
-      throw error;
+      const msg = error.response?.data?.message || 'Login failed';
+      set({ error: msg, loading: false });
+      throw new Error(msg);
     }
   },
 
   logout: async () => {
-    try {
-      await api.post('/auth/logout');
-    } finally {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('user');
-      set({ user: null });
-    }
+    try { await api.post('/auth/logout'); } catch {}
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    set({ user: null, posts: [] });
   },
 
   fetchPosts: async (params) => {
@@ -75,6 +73,7 @@ export const useStore = create((set, get) => ({
       return data;
     } catch (error) {
       set({ error: error.message, loading: false });
+      return { posts: [] };
     }
   },
 
@@ -105,10 +104,8 @@ export const useStore = create((set, get) => ({
   uploadFile: async (file) => {
     set({ loading: true });
     try {
-      const { data } = await api.post(`/upload?filename=${file.name}`, file, {
-        headers: {
-          'Content-Type': file.type,
-        },
+      const { data } = await api.post(`/upload?filename=${encodeURIComponent(file.name)}`, file, {
+        headers: { 'Content-Type': file.type },
       });
       set({ loading: false });
       return data.url;
@@ -116,7 +113,7 @@ export const useStore = create((set, get) => ({
       set({ error: error.message, loading: false });
       throw error;
     }
-  }
+  },
 }));
 
 export { api };

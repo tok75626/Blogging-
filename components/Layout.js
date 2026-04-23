@@ -4,12 +4,10 @@ import { useStore } from '@/hooks/useStore';
 import { useEffect } from 'react';
 
 export default function Layout({ children }) {
-  const { user, setUser, logout } = useStore();
+  const { user, initAuth, logout } = useStore();
 
   useEffect(() => {
-    // Basic persistence check
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) setUser(JSON.parse(storedUser));
+    initAuth();
   }, []);
 
   return (
@@ -23,8 +21,10 @@ export default function Layout({ children }) {
               <>
                 <Link href="/dashboard">Dashboard</Link>
                 <Link href="/posts/create">Create</Link>
-                <button onClick={logout} style={{ background: 'transparent', color: 'var(--text-dim)' }}>Logout</button>
-                <span style={{ color: 'var(--primary)' }}>{user.name}</span>
+                <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{user.name}</span>
+                <button onClick={logout} style={{ background: 'transparent', color: 'var(--text-dim)', cursor: 'pointer' }}>
+                  Logout
+                </button>
               </>
             ) : (
               <>

@@ -4,36 +4,36 @@ import bcrypt from 'bcryptjs';
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Please provide a name'],
+    required: [true, 'Name is required'],
+    trim: true,
   },
   email: {
     type: String,
-    required: [true, 'Please provide an email'],
+    required: [true, 'Email is required'],
     unique: true,
-    index: true,
+    lowercase: true,
+    trim: true,
   },
   password: {
     type: String,
-    required: [true, 'Please provide a password'],
+    required: [true, 'Password is required'],
+    minlength: 6,
   },
   role: {
     type: String,
     enum: ['user', 'admin'],
     default: 'user',
   },
-  refreshToken: {
-    type: String,
-  }
 }, { timestamps: true });
 
 UserSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 12);
+  this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
 UserSchema.methods.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+  return bcrypt.compare(candidatePassword, this.password);
 };
 
 export default mongoose.models.User || mongoose.model('User', UserSchema);

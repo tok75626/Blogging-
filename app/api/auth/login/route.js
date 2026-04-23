@@ -1,44 +1,48 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
-import { signAccessToken, signRefreshToken } from '@/lib/auth';
+import { signToken } from '@/lib/auth';
 
 export async function POST(request) {
   try {
     await dbConnect();
+
     const { email, password } = await request.json();
 
-    const user = await User.findOne({ email });
-    if (!user || !(await user.comparePassword(password))) {
-      return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 });
+    if (!email || !password) {
+      return NextResponse.json({ message: 'Email and password are required' }, { status: 400 });
     }
 
-    const payload = { id: user._id, email: user.email, role: user.role };
-    const accessToken = signAccessToken(payload);
-    const refreshToken = signRefreshToken(payload);
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return NextResponse.json({ message: 'Invalid email or password' }, { status: 401 });
+    }
 
-    // Save refresh token to DB for rotation/revocation
-    user.refreshToken = refreshToken;
-    await user.save();
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return NextResponse.json({ message: 'Invalid email or password' }, { status: 401 });
+    }
 
-    const response = NextResponse.json({
+    const token = signToken({
+      id: user._id.toString(),
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    });
+
+    return NextResponse.json({
       message: 'Login successful',
-      user: { id: user._id, name: user.name, email: user.email, role: user.role },
-      accessToken
+      token,
+      user: {
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
-
-    // Set Refresh Token in secure HTTP-only cookie
-    response.cookies.set('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-      path: '/',
-    });
-
-    return response;
 
   } catch (error) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    console.error('Login error:', error);
+    return NextResponse.json({ message: error.message || 'Server error' }, { status: 500 });
   }
 }

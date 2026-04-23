@@ -5,25 +5,38 @@ import User from '@/models/User';
 export async function POST(request) {
   try {
     await dbConnect();
-    const { name, email, password } = await request.json();
+
+    const body = await request.json();
+    const { name, email, password } = body;
 
     if (!name || !email || !password) {
-      return NextResponse.json({ message: 'Missing fields' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Name, email and password are required' },
+        { status: 400 }
+      );
     }
 
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return NextResponse.json({ message: 'User already exists' }, { status: 400 });
+    if (password.length < 6) {
+      return NextResponse.json(
+        { message: 'Password must be at least 6 characters' },
+        { status: 400 }
+      );
     }
 
-    const user = await User.create({ name, email, password });
+    const existing = await User.findOne({ email: email.toLowerCase() });
+    if (existing) {
+      return NextResponse.json(
+        { message: 'An account with this email already exists' },
+        { status: 409 }
+      );
+    }
 
-    return NextResponse.json({ 
-      message: 'User registered successfully',
-      user: { id: user._id, name: user.name, email: user.email }
-    }, { status: 201 });
+    await User.create({ name: name.trim(), email: email.toLowerCase().trim(), password });
+
+    return NextResponse.json({ message: 'Account created successfully' }, { status: 201 });
 
   } catch (error) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    console.error('Register error:', error);
+    return NextResponse.json({ message: error.message || 'Server error' }, { status: 500 });
   }
 }
