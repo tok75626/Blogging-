@@ -69,7 +69,7 @@ export default function Home() {
             </span>
             <h2 style={{ marginTop: '1rem', fontSize: '1.5rem' }}>{post.title}</h2>
             <p style={{ color: 'var(--text-dim)', margin: '1rem 0', fontSize: '0.95rem' }}>
-              {post.summary || post.content.substring(0, 150) + '...'}
+              {post.summary || (post.content || '').substring(0, 150) + '...'}
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem', fontSize: '0.85rem' }}>
               <span style={{ color: 'white', fontWeight: '500' }}>By {post.author?.name}</span>

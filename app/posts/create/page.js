@@ -31,7 +31,12 @@ export default function CreatePost() {
     if (!prompt) return alert('Enter a prompt first');
     try {
       const data = await generateAIContent(prompt);
-      setPostData(data);
+      setPostData(prev => ({
+        ...prev,
+        ...data,
+        tags: Array.isArray(data.tags) ? data.tags : [],
+        coverImage: prev.coverImage, // preserve any uploaded image
+      }));
     } catch (e) {
       alert('AI Generation failed. Fallback triggered but failed as well.');
     }
